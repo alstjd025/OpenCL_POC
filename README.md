@@ -12,14 +12,14 @@ If you wanna build hello.cpp file for 64-bit LSB arm64, the compile commands are
 /android/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++   --target=aarch64-linux-android30   -static-libstdc++   -fPIE -pie -std=c++17   hello.cpp -o hello
 # i recommend to statically link libstdc++ or libc, because sometimes the android LD cannot find them.
 </code>
-<pre>
+</pre>
 
 If you wanna build some binary with external libraries..
 <pre>
 <code>
 /android/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++   --target=aarch64-linux-android30   -static-libstdc++   -fPIE -pie -std=c++17 -I./  -L./libs -lOpenCL unified.cpp -o unified
 </code>
-</pre?
+</pre>
 
 
 
