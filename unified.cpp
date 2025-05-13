@@ -9,6 +9,7 @@
 #include <chrono> // optional
 #include <fstream>
 #include <unistd.h>
+#include <memory.h>
 #include <sstream>  
 
 
@@ -88,7 +89,7 @@ int main() {
   cl_device_id device;
   cl_uint numPlatforms;
   PrintRSSandPSS("before OpenCL initialization");
-  sleep(20); // 이 시점에서 smaps/lsof 확인 가능
+  // sleep(20); // 이 시점에서 smaps/lsof 확인 가능
   clGetPlatformIDs(1, &platform, &numPlatforms);
   clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, nullptr);
 
@@ -96,27 +97,37 @@ int main() {
   // cl_context context_two = clCreateContext(nullptr, 1, &device, nullptr, nullptr, nullptr);
   PrintRSSandPSS("after clCreateContext");
   std::cout << "sleep for 20sec." << std::endl;
-  sleep(20); // 이 시점에서 smaps/lsof 확인 가능
+  // sleep(20); // 이 시점에서 smaps/lsof 확인 가능
   
   cl_command_queue queue = clCreateCommandQueue(context, device, 0, nullptr);
   // cl_command_queue queue_two = clCreateCommandQueue(context_two, device, 0, nullptr);
   PrintRSSandPSS("after clCreateCommandQueue");
   
-  int dataSize = 10;
-  cl_mem buffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, dataSize * sizeof(int), nullptr, nullptr);
-  // cl_mem buffer_two = clCreateBuffer(context_two, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, dataSize * sizeof(int), nullptr, nullptr);
-  std::cout << "Created buffer on GPU with host ptr" << "\n";
+  int dataSize = 25000000;
+  cl_mem buffer = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
+                                 dataSize * sizeof(int), nullptr, nullptr);
+  // cl_mem buffer_two = clCreateBuffer(context_two, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
+  //                        dataSize * sizeof(int), nullptr, nullptr);
+  std::cout << "Created buffer on GPU with host ptr in size of "
+            << dataSize << " x " << sizeof(int) << " bytes \n";
   PrintRSSandPSS("after clCreateBuffer");
+  sleep(20);
 
   // 4. CPU에서 메모리 매핑 후 초기화
   //  clEnqueueMapBuffer returns device buffer ptr to host accesible ptr.
-  int* hostData = (int*)clEnqueueMapBuffer(queue, buffer, CL_TRUE, CL_MAP_WRITE, 0, dataSize * sizeof(int), 0, nullptr, nullptr, nullptr);
-  // int* hostData_two = (int*)clEnqueueMapBuffer(queue_two, buffer_two, CL_TRUE, CL_MAP_WRITE, 0, dataSize * sizeof(int), 0, nullptr, nullptr, nullptr);
+  int* hostData = (int*)clEnqueueMapBuffer(queue, buffer, CL_TRUE, CL_MAP_WRITE,
+                        0, dataSize * sizeof(int), 0, nullptr, nullptr, nullptr);
+  // int* hostData_two = (int*)clEnqueueMapBuffer(queue_two, buffer_two,
+  //        CL_TRUE, CL_MAP_WRITE, 0, dataSize * sizeof(int), 0, nullptr, nullptr, nullptr);
   std::cout << "Get ptr from clEnqueueMapBuffer" << "\n";
+  
+  // [Minsung] what happens to PSS if use memset? -> nothing different with for...()
+  // memset(hostData, 0xAB, dataSize * sizeof(int));
+
   for (int i = 0; i < dataSize; i++) hostData[i] = i;
   // for (int i = 0; i < dataSize; i++) hostData_two[i] = i+10;
-  PrintRSSandPSS("after clEnqueueMapBuffer");
-
+  PrintRSSandPSS("after clEnqueueMapBuffer & host data write");
+  sleep(20);
   clEnqueueUnmapMemObject(queue, buffer, hostData, 0, nullptr, nullptr);
   // clEnqueueUnmapMemObject(queue_two, buffer_two, hostData_two, 0, nullptr, nullptr);
   PrintRSSandPSS("after clEnqueueUnmapMemObject");
@@ -151,11 +162,13 @@ int main() {
   PrintRSSandPSS("after clEnqueueNDRangeKernel");
 
   // 8. CPU에서 다시 메모리 매핑 후 결과 확인
-  hostData = (int*)clEnqueueMapBuffer(queue, buffer, CL_TRUE, CL_MAP_READ, 0, dataSize * sizeof(int), 0, nullptr, nullptr, nullptr);
-  // hostData_two = (int*)clEnqueueMapBuffer(queue_two, buffer_two, CL_TRUE, CL_MAP_READ, 0, dataSize * sizeof(int), 0, nullptr, nullptr, nullptr);
-  for (int i = 0; i < dataSize; i++) {
-      std::cout << "data[" << i << "] = " << hostData[i] << std::endl;
-  }
+  hostData = (int*)clEnqueueMapBuffer(queue, buffer, CL_TRUE, CL_MAP_READ,
+                   0, dataSize * sizeof(int), 0, nullptr, nullptr, nullptr);
+  // hostData_two = (int*)clEnqueueMapBuffer(queue_two, buffer_two, CL_TRUE, CL_MAP_READ,
+  //                0, dataSize * sizeof(int), 0, nullptr, nullptr, nullptr);
+  // for (int i = 0; i < dataSize; i++) {
+  //     std::cout << "data[" << i << "] = " << hostData[i] << std::endl;
+  // }
   // for (int i = 0; i < dataSize; i++) {
   //     std::cout << "data[" << i << "] = " << hostData_two[i] << std::endl;
   // }
