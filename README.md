@@ -1,4 +1,4 @@
-2025 Minsung Kim <alstjd025@gmail.com> @ NXC lab, SNU.
+2025 Minsung Kim <alstjd025@gmail.com> 
 
 # How to compile for Android 64 (e.g., Google Pixel 6)
 First, prepare a docker container contains android-ndk build toolchains.
