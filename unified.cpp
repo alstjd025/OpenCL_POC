@@ -83,17 +83,20 @@ void PrintRSSandPSS(std::string log){
 }
 
 int main() {
-  std::cout << "hello" << "\n";
+  std::cout << "OpenCL test program, PID " << RED << getpid() << RESET << "\n";
   cl_platform_id platform;
   cl_device_id device;
   cl_uint numPlatforms;
   PrintRSSandPSS("before OpenCL initialization");
+  sleep(20); // 이 시점에서 smaps/lsof 확인 가능
   clGetPlatformIDs(1, &platform, &numPlatforms);
   clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, nullptr);
 
   cl_context context = clCreateContext(nullptr, 1, &device, nullptr, nullptr, nullptr);
   // cl_context context_two = clCreateContext(nullptr, 1, &device, nullptr, nullptr, nullptr);
   PrintRSSandPSS("after clCreateContext");
+  std::cout << "sleep for 20sec." << std::endl;
+  sleep(20); // 이 시점에서 smaps/lsof 확인 가능
   
   cl_command_queue queue = clCreateCommandQueue(context, device, 0, nullptr);
   // cl_command_queue queue_two = clCreateCommandQueue(context_two, device, 0, nullptr);
@@ -126,6 +129,10 @@ int main() {
   // cl_program program_two = clCreateProgramWithSource(context_two, 1, &kernelSource, nullptr, nullptr);
   clBuildProgram(program, 1, &device, nullptr, nullptr, nullptr);
   PrintRSSandPSS("after clBuildProgram");
+  std::cout << "sleep for 20sec." << std::endl;
+  sleep(20); // 이 시점에서 smaps/lsof 확인 가능
+
+
   // clBuildProgram(program_two, 1, &device, nullptr, nullptr, nullptr);
   cl_kernel kernel = clCreateKernel(program, "add_one", nullptr);
   // cl_kernel kernel_two = clCreateKernel(program_two, "add_one", nullptr);
