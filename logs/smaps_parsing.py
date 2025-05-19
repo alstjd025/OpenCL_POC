@@ -1,8 +1,9 @@
 import re
 import sys
 import csv
+import os
 
-def parse_smaps_file(filepath, output_csv="smaps_summary.csv"):
+def parse_smaps_file(filepath):
     entries = []
     current = {}
 
@@ -30,6 +31,10 @@ def parse_smaps_file(filepath, output_csv="smaps_summary.csv"):
 
     if current:
         entries.append(current)
+
+    # 입력 파일명 기반으로 CSV 파일명 생성
+    base_name = os.path.basename(filepath)
+    output_csv = f"{base_name}.csv"
 
     # CSV 저장
     with open(output_csv, "w", newline='') as csvfile:
